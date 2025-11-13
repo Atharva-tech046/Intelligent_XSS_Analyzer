@@ -1,0 +1,143 @@
+/* Import a modern, monospaced font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+/* Apply font and base styles */
+body {
+  font-family: 'Roboto Mono', monospace;
+  margin: 0;
+  background-color: #121212; /* Base black background */
+}
+
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #121212; /* Dark black background */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: #e0e0e0; /* Softer white for text */
+  padding: 20px;
+}
+
+/* --- Title Styles --- */
+h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0.5em 0;
+}
+
+h2 {
+  font-size: 2rem;
+  color: #00f2a1;
+  margin: 0;
+  font-weight: 700;
+}
+
+p {
+  color: #aaa;
+  font-size: 1rem;
+}
+
+/* --- Interactive Controls --- */
+.scan-controls {
+  display: flex;
+  gap: 10px;
+  margin: 20px;
+}
+
+.scan-controls input {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1rem;
+  padding: 12px 15px;
+  border-radius: 5px;
+  border: 2px solid #444;
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  width: 300px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.scan-controls input:focus {
+  outline: none;
+  border-color: #00f2a1;
+  box-shadow: 0 0 10px #00f2a144;
+}
+
+.scan-controls button {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  background-color: #00f2a1;
+  color: #121212;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.scan-controls button:hover {
+  background-color: #00c888;
+  transform: scale(1.05);
+}
+
+.scan-controls button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- Results Area --- */
+.results-container {
+  margin-top: 20px;
+  width: 80%;
+  max-width: 600px;
+  /* FIX 1: This centers the "No results..." text
+    and the "Loading..." text.
+  */
+  text-align: center; 
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+.results-list {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  /* This keeps the vulnerability details left-aligned */
+  text-align: left; 
+}
+
+.result-item {
+  background-color: #2a2a2a;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+.result-item p {
+  font-size: 0.9rem;
+  margin: 5px 0;
+  word-wrap: break-word;
+}
+
+.result-item strong {
+  color: #00f2a1;
+  font-weight: 700;
+}
+
+/* FIX 2: This specifically re-centers the 
+  "Scan found..." H2 title inside the results list.
+*/
+.results-list h2 {
+  text-align: center;
+}
