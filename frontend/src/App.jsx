@@ -34,7 +34,7 @@ function App() {
     setResult(null);
 
     try {
-      const response = await axios.post('/api/scan', { url: targetUrl });
+      const response = await axios.post('http://127.0.0.1:5000/api/scan', { url: targetUrl });
       const payload = response.data;
       setResult(payload);
 

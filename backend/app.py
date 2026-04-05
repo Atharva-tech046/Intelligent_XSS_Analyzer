@@ -1,9 +1,12 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()  # This magically loads your .env file!
 import time
 from urllib.parse import quote, urlparse, urlunparse
 
 import google.generativeai as genai
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -12,7 +15,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from models import ScanResult, db
 
-DATABASE_URI = 'postgresql://postgres:Atharva%4031@localhost:5432/IXA_db'
+DATABASE_URI = os.environ.get('DATABASE_URL', 'postgresql://postgres:Layba0107@localhost:5432/IXA_db')
 ATTACK_PAYLOAD = "<script>console.log('IXA_REFLECTED')</script>"
 FALLBACK_MITIGATION = (
     'Use strict output encoding and never inject untrusted URL parameters into innerHTML. '
@@ -20,6 +23,7 @@ FALLBACK_MITIGATION = (
 )
 
 app = Flask(__name__)
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -30,6 +34,9 @@ with app.app_context():
 
 
 def build_attack_url(target_url: str) -> str:
+    if not target_url.startswith(('http://', 'https://')):
+        target_url = f'http://{target_url}'
+
     parsed = urlparse(target_url)
     encoded_payload = quote(ATTACK_PAYLOAD, safe='')
     if parsed.query:
@@ -54,7 +61,7 @@ def create_headless_driver():
 
 
 def request_ai_mitigation(target_url: str) -> str:
-    api_key = os.environ.get('GOOGLE_API_KEY', '')
+    api_key = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
     if not api_key:
         return FALLBACK_MITIGATION
 
@@ -65,18 +72,14 @@ def request_ai_mitigation(target_url: str) -> str:
     )
 
     try:
-        response = genai.TextGeneration.create(
-            model='gemini-1.5-flash',
-            prompt=prompt,
-            max_output_tokens=220,
-        )
-
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(prompt)
         mitigation_text = getattr(response, 'text', None)
         if mitigation_text:
             return mitigation_text.strip()
-
         return str(response).strip()
-    except Exception:
+    except Exception as err:
+        print(f'Gemini API error: {err}')
         return FALLBACK_MITIGATION
 
 
