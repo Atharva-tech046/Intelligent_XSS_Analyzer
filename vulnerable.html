@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vulnerable Target Lab</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #e0f7ff;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+    }
+    .lab {
+      width: min(680px, 90vw);
+      padding: 32px;
+      border: 1px solid #14f3ff;
+      border-radius: 14px;
+      background: rgba(8, 8, 11, 0.95);
+      box-shadow: 0 0 48px rgba(20, 243, 255, 0.12);
+    }
+    .lab h1 {
+      margin: 0 0 16px;
+      font-size: 1.6rem;
+      color: #8affff;
+    }
+    .lab .search-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .lab input[type="text"] {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid #3c7c86;
+      border-radius: 8px;
+      background: #111517;
+      color: #f1faff;
+      font-size: 1rem;
+    }
+    .lab button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #00d5ff;
+      color: #041014;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .lab .output {
+      padding: 18px;
+      border: 1px solid #1f7a8c;
+      border-radius: 12px;
+      background: #081115;
+      min-height: 140px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      color: #c9f9ff;
+    }
+    .lab .hint {
+      margin-top: 16px;
+      color: #79e1ff;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="lab">
+    <h1>Vulnerable Target Lab</h1>
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="Enter search query..." />
+      <button id="searchButton">Search</button>
+    </div>
+    <div class="output" id="searchResults"></div>
+    <p class="hint">This lab reads <code>query</code> from the URL and inserts it directly into the DOM using <code>innerHTML</code>.</p>
+  </div>
+
+  <script>
+    const payloadDisplay = document.getElementById('searchResults');
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+
+    function renderQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get('query') || '';
+      searchInput.value = query;
+      payloadDisplay.innerHTML = query;
+    }
+
+    function updateUrl() {
+      const value = searchInput.value;
+      const params = new URLSearchParams(window.location.search);
+      params.set('query', value);
+      window.location.search = params.toString();
+    }
+
+    searchButton.addEventListener('click', updateUrl);
+    window.addEventListener('DOMContentLoaded', renderQuery);
+  </script>
+</body>
+</html>
