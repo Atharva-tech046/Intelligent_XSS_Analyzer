@@ -1,6 +1,3 @@
-# IXA FRESH CODE 
-
-
 import time
 import requests
 from flask import Flask, request, jsonify
@@ -11,11 +8,13 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Framework Initialization
+# ==========================================
+# 1. FRAMEWORK & DATABASE INITIALIZATION
+# ==========================================
 app = Flask(__name__)
 CORS(app)
 
-# PostgreSQL Configuration (Pointing to the NEW IXA_logs database)
+# PostgreSQL Configuration (Pointing to the IXA_logs database)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Atharva%4031@localhost:5432/IXA_logs'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -38,24 +37,30 @@ class ScanResult(db.Model):
             'ai_mitigation': self.ai_mitigation
         }
 
+# ==========================================
+# 2. SELENIUM ENGINE CONFIGURATION
+# ==========================================
 def init_driver():
     opts = Options()
     opts.add_argument("--headless")
     opts.add_argument("--disable-gpu")
     opts.add_argument("--no-sandbox")
+    # Suppress console logging for a cleaner terminal
+    opts.add_argument("--log-level=3") 
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=opts)
 
-# Core Scanner Route
+# ==========================================
+# 3. CORE VULNERABILITY SCANNER ROUTE
+# ==========================================
 @app.route('/api/scan', methods=['POST'])
 def scan_engine():
-    print("\n[BACKEND] 🟢 Request received from frontend!")
+    print("\n[IXA CORE] 🟢 Scan directive received.")
     data = request.json
     target_url = data.get('url')
     scan_type = data.get('scan_type', 'reflected')
-    print(f"[BACKEND] 🎯 Target: {target_url} | Engine: {scan_type.upper()}")
+    print(f"[IXA CORE] 🎯 Target: {target_url} | Engine: {scan_type.upper()}")
     
     driver = init_driver()
-    print("[BACKEND] ✅ Selenium WebDriver booted successfully!")
     findings = []
     
     try:
@@ -63,9 +68,8 @@ def scan_engine():
         vuln_type = ""
         vuln_vector = ""
 
-        # --- ENGINE 1: REFLECTED XSS ---
+        # --- ENGINE ALPHA: REFLECTED XSS ---
         if scan_type == 'reflected':
-            print("[BACKEND] 🔫 Firing Reflected payload...")
             payload = "<script>console.log('IXA_REFLECTED')</script>"
             attack_url = f"{target_url}?query={payload}" if "?" not in target_url else f"{target_url}&query={payload}"
             driver.get(attack_url)
@@ -75,11 +79,10 @@ def scan_engine():
                 is_vulnerable = True
                 vuln_type = "Reflected XSS"
                 vuln_vector = "URL Parameter Reflection Detected"
-                print("[BACKEND] 🚨 Vulnerability Found!")
+                print("[IXA CORE] 🚨 Reflected Vulnerability Confirmed!")
 
-        # --- ENGINE 2: DOM-BASED XSS (THE FUZZER) ---
+        # --- ENGINE BETA: DOM-BASED XSS (THE FUZZER) ---
         elif scan_type == 'dom':
-            print("[BACKEND] 🔫 Loading DOM Fuzzer Arsenal...")
             payloads = [
                 "#<script>alert('IXA_DOM')</script>",         
                 "#<img src=x onerror=alert('IXA_DOM')>",      
@@ -87,7 +90,6 @@ def scan_engine():
             ]
             
             for index, payload in enumerate(payloads):
-                print(f"[BACKEND] 🧪 Testing Payload {index + 1}/{len(payloads)}...")
                 attack_url = f"{target_url}{payload}"
                 driver.get(attack_url)
                 time.sleep(2)
@@ -99,16 +101,16 @@ def scan_engine():
                         vuln_type = "DOM-Based XSS"
                         vuln_vector = f"DOM Sink Exploited via: {payload}"
                         alert.accept() 
-                        print(f"[BACKEND] 🚨 Vulnerability Found with Payload {index + 1}!")
+                        print(f"[IXA CORE] 🚨 DOM Vulnerability Confirmed via Payload {index + 1}!")
                         break
                 except:
                     continue
 
-        # --- AI REMEDIATION TRIGGER ---
+        # --- AI REMEDIATION GENERATION (GROQ LLAMA-3.1) ---
         if is_vulnerable:
-            print("[BACKEND] 🧠 Generating AI Remediation via Groq...")
+            print("[IXA CORE] 🧠 Generating AI Mitigation Strategy...")
             try:
-                # IMPORTANT: Put your actual Groq key here!
+                # !!! IMPORTANT: PASTE YOUR GROQ KEY BELOW !!!
                 groq_api_key = "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"
                 
                 url = "https://api.groq.com/openai/v1/chat/completions"
@@ -119,17 +121,18 @@ def scan_engine():
                 prompt_payload = {
                     "model": "llama-3.1-8b-instant",
                     "messages": [
-                        {"role": "user", "content": f"Provide a short, punchy 3-step fix for {vuln_type} at {target_url}. Do not use bold text or markdown."}
+                        {"role": "user", "content": f"Provide a short, highly technical 3-step fix for {vuln_type} at {target_url}. Do not use markdown bolding."}
                     ]
                 }
                 
                 response = requests.post(url, headers=headers, json=prompt_payload)
                 api_data = response.json()
-                advice = api_data['choices'][0]['message']['content'].strip() if 'error' not in api_data else "Mitigation: 1. Validate input. 2. Sanitize data via DOMPurify. 3. Implement strict CSP."
+                advice = api_data['choices'][0]['message']['content'].strip() if 'error' not in api_data else "Mitigation Error: Implement Content Security Policy."
             except Exception as e:
-                print(f"[BACKEND] AI Error: {e}")
-                advice = "Mitigation: 1. Validate input. 2. Sanitize data via DOMPurify. 3. Implement strict CSP."
+                print(f"[IXA CORE] AI Error: {e}")
+                advice = "Mitigation Error: Implement strict input sanitization via DOMPurify and configure CSP."
 
+            # Save to PostgreSQL
             new_finding = ScanResult(
                 target_url=target_url,
                 vulnerability_type=vuln_type,
@@ -139,32 +142,75 @@ def scan_engine():
             db.session.add(new_finding)
             db.session.commit()
             findings.append(new_finding.to_dict())
-            print("[BACKEND] 💾 Finding saved to database and sent to frontend.")
+            print("[IXA CORE] 💾 Threat Intelligence persisted to database.")
         else:
-            print("[BACKEND] 🛡️ Target appears secure against current payloads.")
+            print("[IXA CORE] 🛡️ Target secure against utilized vectors.")
                 
     except Exception as e:
-        print(f"\n[BACKEND] ❌ Scan Error: {e}\n")
+        print(f"\n[IXA CORE] ❌ Execution Error: {e}\n")
     finally:
         driver.quit()
-        print("[BACKEND] 🛑 Selenium WebDriver closed.")
         
     return jsonify(findings)
 
-# --- DATABASE HISTORY ROUTE ---
+# ==========================================
+# 4. DATABASE HISTORY ROUTE
+# ==========================================
 @app.route('/api/history', methods=['GET'])
 def get_history():
-    print("\n[BACKEND] 🗄️ Fetching Threat Intelligence History...")
     try:
-        # Fetch all records, ordered by newest first
         records = ScanResult.query.order_by(ScanResult.id.desc()).all()
-        print(f"[BACKEND] ✅ Successfully retrieved {len(records)} records.")
         return jsonify([record.to_dict() for record in records])
     except Exception as e:
-        print(f"[BACKEND] ❌ Database Fetch Error: {e}")
         return jsonify([])
 
+# ==========================================
+# 5. NEW: INTERACTIVE AI CHATBOT ROUTE
+# ==========================================
+@app.route('/api/chat', methods=['POST'])
+def chat_interface():
+    data = request.json
+    messages = data.get('messages', [])
+    
+    # !!! IMPORTANT: PASTE YOUR GROQ KEY BELOW !!!
+    groq_api_key = "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"
+    
+    try:
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {groq_api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        # System persona to make it act like a SecOps AI
+        system_prompt = {
+            "role": "system", 
+            "content": "You are IXA, an elite cybersecurity AI assistant designed by Atharva. Answer the user's follow-up questions about XSS vulnerabilities concisely and technically. Provide code snippets if asked."
+        }
+        
+        prompt_payload = {
+            "model": "llama-3.1-8b-instant",
+            "messages": [system_prompt] + messages
+        }
+        
+        response = requests.post(url, headers=headers, json=prompt_payload)
+        api_data = response.json()
+        reply = api_data['choices'][0]['message']['content'].strip()
+        return jsonify({"reply": reply})
+    except Exception as e:
+        print(f"[IXA CORE] Chat Error: {e}")
+        return jsonify({"reply": "Connection to AI Core severed. Please try again."}), 500
+
+# ==========================================
+# 6. SERVER BOOT SEQUENCE
+# ==========================================
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all() 
+        db.create_all() # Ensure Postgres tables exist
+    print("\n=========================================")
+    print("   🛡️ IXA PLATFORM v2.0 SECURE BACKEND   ")
+    print("=========================================\n")
     app.run(debug=True, port=5000)
+
+
+    
