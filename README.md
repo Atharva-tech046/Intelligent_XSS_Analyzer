@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shield-alert.svg" width="80" height="80" alt="IXA Logo"/>
+<img src="https://github.com/user-attachments/assets/3426840d-47ad-4279-bd54-baf550cba23f" width="250" alt="IXA Logo"/>
 
 # 🛡️ IXA Platform v2.0
 **Intelligent XSS Analyzer | Autonomous Vulnerability Detection**
