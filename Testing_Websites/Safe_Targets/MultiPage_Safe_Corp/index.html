@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Safe Corp - Home</title>
+    <style>
+        body { font-family: Arial; background: #e8f5e8; color: #2e7d32; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 10px; text-decoration: none; color: #2e7d32; }
+        #greeting { margin-top: 20px; padding: 10px; background: white; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Safe Corp</h1>
+        <nav>
+            <a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a>
+        </nav>
+        <p>Welcome to our corporate site.</p>
+        <div id="greeting"></div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        if (name) {
+            document.getElementById('greeting').textContent = 'Welcome ' + name;
+        }
+    </script>
+</body>
+</html>

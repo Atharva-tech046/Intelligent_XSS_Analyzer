@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vuln Dashboard - Profile</title>
+    <style>
+        body { font-family: Arial; background: #f3e5f5; color: #7b1fa2; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 10px; text-decoration: none; color: #7b1fa2; }
+        #name { margin-top: 20px; padding: 10px; background: white; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Profile</h1>
+        <nav>
+            <a href="index.html">Home</a> | <a href="profile.html">Profile</a> | <a href="settings.html">Settings</a>
+        </nav>
+        <div id="name"></div>
+    </div>
+    <script>
+        const hash = window.location.hash.substring(1);
+        <!-- Vulnerable: DOM XSS -->
+        document.getElementById('name').innerHTML = 'Hello ' + hash;
+    </script>
+</body>
+</html>

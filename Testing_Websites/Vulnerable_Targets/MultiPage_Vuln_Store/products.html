@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vuln Store - Products</title>
+    <style>
+        body { font-family: Arial; background: #fff3e0; color: #e65100; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 10px; text-decoration: none; color: #e65100; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 10px; background: white; margin-bottom: 5px; border: 1px solid #ccc; }
+        #cat { margin-bottom: 20px; padding: 10px; background: white; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Products</h1>
+        <nav>
+            <a href="index.html">Home</a> | <a href="products.html">Products</a> | <a href="checkout.html">Checkout</a>
+        </nav>
+        <div id="cat"></div>
+        <ul>
+            <li>Product 1</li>
+            <li>Product 2</li>
+        </ul>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('category');
+        if (category) {
+            <!-- Vulnerable: Reflected XSS -->
+            document.getElementById('cat').innerHTML = 'Showing results for: ' + category;
+        }
+    </script>
+</body>
+</html>

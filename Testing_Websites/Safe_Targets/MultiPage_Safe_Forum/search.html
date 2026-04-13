@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Safe Forum - Search</title>
+    <style>
+        body { font-family: Arial; background: #fff9c4; color: #f57f17; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 10px; text-decoration: none; color: #f57f17; }
+        input { padding: 10px; width: 200px; }
+        button { padding: 10px; background: #f57f17; color: white; border: none; }
+        #results { margin-top: 20px; padding: 10px; background: white; border: 1px solid #ccc; white-space: pre-line; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Search</h1>
+        <nav>
+            <a href="index.html">Home</a> | <a href="topics.html">Topics</a> | <a href="search.html">Search</a>
+        </nav>
+        <input type="text" id="search" placeholder="Search topics...">
+        <button onclick="search()">Search</button>
+        <div id="results"></div>
+    </div>
+    <script>
+        function search() {
+            const query = document.getElementById('search').value;
+            const results = document.getElementById('results');
+            results.textContent = 'Search results for: ' + query + '\n\nSimulated results:\n- Topic 1\n- Topic 2\n- Topic 3';
+        }
+    </script>
+</body>
+</html>

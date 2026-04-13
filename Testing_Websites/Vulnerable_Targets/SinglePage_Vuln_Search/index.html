@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vuln Search</title>
+    <style>
+        body { font-family: Arial; background: #ffebee; color: #c62828; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        #results { margin-top: 20px; padding: 10px; background: white; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vulnerable Search</h1>
+        <div id="results"></div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const q = urlParams.get('q');
+        if (q) {
+            <!-- Vulnerable: Reflected XSS -->
+            document.getElementById('results').innerHTML = 'Search results for: ' + q;
+        }
+    </script>
+</body>
+</html>
