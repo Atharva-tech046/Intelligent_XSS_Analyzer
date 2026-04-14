@@ -1,0 +1,11 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "" },
+        { "key": "X-XSS-Protection", "value": "0" }
+      ]
+    }
+  ]
+}

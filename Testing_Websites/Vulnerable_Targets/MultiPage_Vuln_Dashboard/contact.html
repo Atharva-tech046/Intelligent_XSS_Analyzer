@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vulnerable Contact</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #ffebee; color: #b71c1c; }
+        .page { max-width: 760px; margin: 0 auto; padding: 24px; }
+        label, input, textarea, button { display: block; width: 100%; margin-bottom: 12px; }
+        textarea { min-height: 120px; }
+        #result { margin-top: 20px; padding: 16px; background: #fff; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <nav><a href="index.html">Home</a> <a href="profile.html">Profile</a> <a href="settings.html">Settings</a> <a href="contact.html">Contact</a></nav>
+        <h1>Contact Us</h1>
+        <form id="contact-form">
+            <label>Name <input id="name" name="name" autocomplete="off"></label>
+            <label>Message <textarea id="message" name="message"></textarea></label>
+            <button type="submit">Send</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    <script>
+        document.getElementById('contact-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const message = document.getElementById('message').value;
+            const code = "document.getElementById('result').innerHTML = '<p><strong>Name:</strong> " + name + "</p><p><strong>Message:</strong> " + message + "</p>'";
+            eval(code);
+        });
+    </script>
+</body>
+</html>

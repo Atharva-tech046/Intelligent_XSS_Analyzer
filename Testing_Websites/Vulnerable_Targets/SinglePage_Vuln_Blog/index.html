@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vulnerable Multipage Store</title>
+    <title>Vulnerable SPA Blog</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -88,7 +88,7 @@
             opacity: 0.9;
         }
 
-        .welcome-section {
+        .search-section {
             background: white;
             padding: 2rem;
             border-radius: 12px;
@@ -96,19 +96,53 @@
             margin-bottom: 2rem;
         }
 
-        .welcome-section h2 {
-            color: #2d3436;
-            margin-bottom: 1rem;
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        #welcome {
-            background: #f8f9fa;
-            padding: 1rem;
+        #search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e1e8ed;
             border-radius: 8px;
-            margin-top: 1rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .forum-cards {
+        #search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #search-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        #results {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-height: 100px;
+        }
+
+        .blog-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
@@ -161,6 +195,10 @@
                 font-size: 2rem;
             }
 
+            .search-form {
+                flex-direction: column;
+            }
+
             .nav-links {
                 display: none;
             }
@@ -171,13 +209,11 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">VulnStore</div>
+                <div class="logo">VulnBlog</div>
                 <div class="nav-links">
-                    <a href="index.html">Home</a>
-                    <a href="products.html">Products</a>
-                    <a href="checkout.html">Checkout</a>
-                    <a href="contact.html">Contact</a>
-                    <a href="/api/echo?message=hello">Echo API</a>
+                    <a href="#home">Home</a>
+                    <a href="#posts">Posts</a>
+                    <a href="#about">About</a>
                 </div>
             </nav>
         </div>
@@ -185,52 +221,74 @@
 
     <main class="container">
         <section class="hero">
-            <h1>Welcome to Our Store</h1>
-            <p>Discover amazing products and deals</p>
-            <lucide-icon name="shopping-cart" class="icon" style="width: 48px; height: 48px; margin: 1rem auto; display: block;"></lucide-icon>
+            <h1>Welcome to Our Blog</h1>
+            <p>Discover insights, stories, and perspectives that matter</p>
+            <lucide-icon name="book-open" class="icon" style="width: 48px; height: 48px; margin: 1rem auto; display: block;"></lucide-icon>
         </section>
 
-        <section class="welcome-section">
-            <h2>Welcome to the Vulnerable Multipage Store</h2>
-            <p>Pass a <code>user</code> query parameter to see the reflected welcome message.</p>
-            <div id="welcome"></div>
+        <section class="search-section">
+            <h2>Search Blog Posts</h2>
+            <p>Use the hash to reflect blog post content directly into the page.</p>
+            <div class="search-form">
+                <input id="search-input" placeholder="Enter blog query" autocomplete="off">
+                <button id="search-button">Search</button>
+            </div>
+            <div id="results"></div>
         </section>
 
-        <section class="forum-cards">
+        <section class="blog-cards">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Electronics</h3>
+                    <h3 class="card-title">The Future of Technology</h3>
                 </div>
                 <div class="card-content">
-                    <div class="card-meta">Latest gadgets and tech</div>
-                    <p>Explore our collection of cutting-edge electronics...</p>
+                    <div class="card-meta">By Tech Writer • 5 days ago</div>
+                    <p>Exploring emerging technologies and their impact on our daily lives...</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Fashion</h3>
+                    <h3 class="card-title">Design Trends 2024</h3>
                 </div>
                 <div class="card-content">
-                    <div class="card-meta">Trendy clothing and accessories</div>
-                    <p>Find your perfect style with our fashion collection...</p>
+                    <div class="card-meta">By Designer • 1 week ago</div>
+                    <p>Latest design trends shaping the digital landscape this year...</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Home & Garden</h3>
+                    <h3 class="card-title">Innovation Stories</h3>
                 </div>
                 <div class="card-content">
-                    <div class="card-meta">Everything for your home</div>
-                    <p>Transform your space with our home essentials...</p>
+                    <div class="card-meta">By Editor • 2 days ago</div>
+                    <p>Inspiring stories of innovation and creative problem-solving...</p>
                 </div>
             </div>
         </section>
     </main>
 
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const user = params.get('user') || 'Guest';
-        document.write('<div class="container"><div class="welcome-section"><h2>Welcome, ' + user + '</h2><p>This page uses document.write() for reflection.</p></div></div>');
+        const results = document.getElementById('results');
+        const input = document.getElementById('search-input');
+
+        function renderFromHash() {
+            const hash = window.location.hash.slice(1);
+            if (!hash) {
+                results.innerHTML = '';
+                return;
+            }
+
+            const query = decodeURIComponent(hash);
+            results.innerHTML = 'Blog results for: ' + query;
+        }
+
+        document.getElementById('search-button').addEventListener('click', () => {
+            const query = input.value || '';
+            window.location.hash = encodeURIComponent(query);
+        });
+
+        window.addEventListener('hashchange', renderFromHash);
+        renderFromHash();
     </script>
     <script>lucide.createIcons();</script>
 </body>
