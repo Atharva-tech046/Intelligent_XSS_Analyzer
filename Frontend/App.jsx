@@ -33,6 +33,7 @@ function App() {
   // --- LOGIN STATE ---
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState(''); // NEW: Error state for secure login
 
   const logEndRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -63,15 +64,34 @@ function App() {
     setAuditTrail(prev => [...prev, { time: new Date().toLocaleTimeString(), text, type }]);
   };
 
-  const handleLogin = (e) => {
+  // --- UPDATED: SECURE BACKEND LOGIN VALIDATION ---
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!loginForm.username || !loginForm.password) return;
+    
     setIsLoggingIn(true);
-    setTimeout(() => {
+    setLoginError(''); // Clear previous errors
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm)
+      });
+
+      if (response.ok) {
+        // Password is correct
+        setCurrentView('scanner');
+        addLog(`Authentication successful for operative [${loginForm.username}]. Security clearance verified.`, "success");
+      } else {
+        // Password is wrong
+        setLoginError('ACCESS DENIED: Invalid Operative Credentials');
+      }
+    } catch (error) {
+      setLoginError('CONNECTION FAILED: Backend Engine Unreachable.');
+    } finally {
       setIsLoggingIn(false);
-      setCurrentView('scanner');
-      addLog(`Authentication successful for operative [${loginForm.username}]. Security clearance verified.`, "success");
-    }, 1800);
+    }
   };
 
   const handleScan = async () => {
@@ -285,6 +305,13 @@ function App() {
               </div>
               <h2 className="login-title text-elegant">Operative Login</h2>
               <p className="login-subtitle">Authenticate to access the Engine</p>
+              
+              {/* SECURE LOGIN ERROR DISPLAY */}
+              {loginError && (
+                <div style={{ marginTop: '15px', padding: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                  <ShieldAlert size={16} /> {loginError}
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleLogin} className="login-form">
