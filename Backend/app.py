@@ -1,3 +1,4 @@
+import os
 import time
 import requests
 from datetime import datetime
@@ -16,7 +17,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 app = Flask(__name__)
 CORS(app)
 
-# PostgreSQL Configuration
+# PostgreSQL Configuration (Uses Cloud URL if deployed, otherwise local PostgreSQL)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Atharva%4031@localhost:5432/IXA_logs'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SCHEDULER_API_ENABLED'] = True # Enable Background Jobs
@@ -83,7 +84,7 @@ def perform_security_audit(target_url, scan_type):
 
         # --- ENGINE ALPHA: REFLECTED XSS ---
         if scan_type == 'reflected':
-            payload = "<script>console.log('IXA_REFLECTED')</script>"
+            payload = "<script>alert('IXA_DOM')</script>"
             
             for param in common_parameters:
                 attack_url = f"{raw_target_url}{param}{payload}"
@@ -91,20 +92,32 @@ def perform_security_audit(target_url, scan_type):
                 driver.get(attack_url)
                 time.sleep(2) 
                 
-                if payload in driver.page_source:
-                    is_vulnerable = True
-                    vuln_type = "Reflected XSS"
-                    vuln_vector = f"Reflection Detected in parameter: {param}"
-                    break
+                try:
+                    alert = driver.switch_to.alert
+                    if 'IXA_DOM' in alert.text:
+                        is_vulnerable = True
+                        vuln_type = "Reflected XSS"
+                        vuln_vector = f"Reflection Detected in parameter: {param}"
+                        alert.accept()
+                        break
+                except:
+                    if payload in driver.page_source:
+                        is_vulnerable = True
+                        vuln_type = "Reflected XSS"
+                        vuln_vector = f"Reflection Detected in parameter: {param}"
+                        break
 
         # --- ENGINE BETA: DOM-BASED XSS ---
         elif scan_type == 'dom':
+            # Added a specific payload tailored for breaking out of image src tags (Level 3 specific)
             payloads = [
+                "1.jpg' onload=alert('IXA_DOM') //",  # <--- Perfect for XSS Game Level 3
                 "<script>alert('IXA_DOM')</script>",         
                 "<img src=x onerror=alert('IXA_DOM')>",      
                 "'\"><img src=x onerror=alert('IXA_DOM')>"     
             ]
-            dom_vectors = common_parameters + ["#"]
+            # Prioritize the Hash (#) parameter for DOM, as it directly targets client-side JS
+            dom_vectors = ["#"] + common_parameters
             
             for vector in dom_vectors:
                 for payload in payloads:
@@ -127,7 +140,8 @@ def perform_security_audit(target_url, scan_type):
 
         # --- AI REMEDIATION GENERATION (GROQ LLAMA-3.1) ---
         if is_vulnerable:
-            groq_api_key = "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"
+            # Uses environment variable in cloud, falls back to hardcoded key locally
+            groq_api_key = os.environ.get('GROQ_API_KEY', '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')
             try:
                 url = "https://api.groq.com/openai/v1/chat/completions"
                 headers = {"Authorization": f"Bearer {groq_api_key}", "Content-Type": "application/json"}
@@ -135,9 +149,11 @@ def perform_security_audit(target_url, scan_type):
                     "model": "llama-3.1-8b-instant",
                     "messages": [{"role": "user", "content": f"Provide a short, highly technical 3-step fix for {vuln_type} at {raw_target_url}. Do not use markdown bolding."}]
                 }
-                response = requests.post(url, headers=headers, json=prompt_payload)
+                # Added timeout=10 to prevent silent freezing!
+                response = requests.post(url, headers=headers, json=prompt_payload, timeout=10)
                 advice = response.json()['choices'][0]['message']['content'].strip()
-            except Exception:
+            except Exception as e:
+                print(f"[AI CORE ERROR] Remediation fetch failed: {e}")
                 advice = "Mitigation Error: Implement strict input sanitization via DOMPurify and configure CSP."
 
             finding_data = {
@@ -155,7 +171,25 @@ def perform_security_audit(target_url, scan_type):
     return finding_data
 
 # ==========================================
-# 4. MANUAL API ROUTE (UI SCAN BUTTON)
+# 4. SECURE LOGIN ROUTE
+# ==========================================
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    # Define your strict Master Operative credentials here
+    MASTER_USER = "Atharva"
+    MASTER_PASS = "admin123"
+
+    if username == MASTER_USER and password == MASTER_PASS:
+        return jsonify({"status": "success", "message": "Authentication successful"}), 200
+    else:
+        return jsonify({"status": "error", "message": "Invalid access credentials"}), 401
+
+# ==========================================
+# 5. MANUAL API ROUTE (UI SCAN BUTTON)
 # ==========================================
 @app.route('/api/scan', methods=['POST'])
 def scan_engine():
@@ -179,7 +213,7 @@ def scan_engine():
     return jsonify(findings)
 
 # ==========================================
-# 5. AUTOMATION SCHEDULER ROUTE
+# 6. AUTOMATION SCHEDULER ROUTE
 # ==========================================
 def scheduled_worker_task(job_id, target_url, scan_type):
     with app.app_context(): 
@@ -221,7 +255,7 @@ def create_schedule():
     return jsonify({"message": f"Successfully scheduled {frequency} scan for {target_url}"})
 
 # ==========================================
-# 6. DATABASE HISTORY & CHATBOT ROUTES
+# 7. DATABASE HISTORY & CHATBOT ROUTES
 # ==========================================
 @app.route('/api/history', methods=['GET'])
 def get_history():
@@ -232,25 +266,34 @@ def get_history():
         return jsonify([])
 
 @app.route('/api/chat', methods=['POST'])
-def chat_interface():
+def chat_with_ixa():
     data = request.json
-    messages = data.get('messages', [])
-    groq_api_key = "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"
+    user_msg = data.get('message')
+    context = data.get('context', 'General security inquiry.') 
     
+    GROQ_API_KEY = "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"
+
     try:
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {"Authorization": f"Bearer {groq_api_key}", "Content-Type": "application/json"}
-        system_prompt = {"role": "system", "content": "You are IXA, an elite cybersecurity AI assistant designed by Atharva. Answer follow-up questions concisely."}
-        
-        prompt_payload = {"model": "llama-3.1-8b-instant", "messages": [system_prompt] + messages}
-        response = requests.post(url, headers=headers, json=prompt_payload)
-        reply = response.json()['choices'][0]['message']['content'].strip()
-        return jsonify({"reply": reply})
+        # Added timeout=10 here as well to prevent Chat UI from freezing
+        res = requests.post("https://api.groq.com/openai/v1/chat/completions", 
+                            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+                            json={
+                                "model": "llama-3.1-8b-instant", 
+                                "messages": [
+                                    {
+                                        "role": "system", 
+                                        "content": f"You are the IXA Security Consultant. You MUST base your answers STRICTLY on this specific scan data: {context}. Do not invent generic examples. If asked about a payload or mitigation, reference the exact Target URL, Sink, and Vector from the context provided. If no context is provided, state that."
+                                    },
+                                    {"role": "user", "content": user_msg}
+                                ]
+                            }, timeout=10) 
+        return jsonify({"reply": res.json()['choices'][0]['message']['content']})
     except Exception as e:
-        return jsonify({"reply": "Connection to AI Core severed. Please try again."}), 500
+        print(f"[CHAT ERROR] {e}") 
+        return jsonify({"reply": "AI Core connection timed out or is busy. Please try again."}), 500
 
 # ==========================================
-# 7. SERVER BOOT SEQUENCE
+# 8. SERVER BOOT SEQUENCE
 # ==========================================
 if __name__ == '__main__':
     with app.app_context():
