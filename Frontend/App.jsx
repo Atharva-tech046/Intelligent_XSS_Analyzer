@@ -15,7 +15,7 @@ function App() {
   const [dbHistory, setDbHistory] = useState([]);
   
   // --- SCHEDULING STATE ---
-  const [scheduleFreq, setScheduleFreq] = useState('demo'); // Default to 1-min for presentation
+  const [scheduleFreq, setScheduleFreq] = useState('demo'); 
   const [isScheduling, setIsScheduling] = useState(false);
 
   const [auditTrail, setAuditTrail] = useState([
@@ -33,13 +33,12 @@ function App() {
   // --- LOGIN STATE ---
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginError, setLoginError] = useState(''); // NEW: Error state for secure login
+  const [loginError, setLoginError] = useState('');
 
   const logEndRef = useRef(null);
   const chatEndRef = useRef(null);
   const featuresRef = useRef(null);
 
-  // Auto-scroll logs and chat
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [auditTrail]);
@@ -64,13 +63,12 @@ function App() {
     setAuditTrail(prev => [...prev, { time: new Date().toLocaleTimeString(), text, type }]);
   };
 
-  // --- UPDATED: SECURE BACKEND LOGIN VALIDATION ---
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!loginForm.username || !loginForm.password) return;
     
     setIsLoggingIn(true);
-    setLoginError(''); // Clear previous errors
+    setLoginError('');
 
     try {
       const response = await fetch('http://127.0.0.1:5000/api/login', {
@@ -80,11 +78,9 @@ function App() {
       });
 
       if (response.ok) {
-        // Password is correct
         setCurrentView('scanner');
         addLog(`Authentication successful for operative [${loginForm.username}]. Security clearance verified.`, "success");
       } else {
-        // Password is wrong
         setLoginError('ACCESS DENIED: Invalid Operative Credentials');
       }
     } catch (error) {
@@ -141,7 +137,6 @@ function App() {
     }
   };
 
-  // --- NEW: SCHEDULING AGENT HANDLER ---
   const handleSchedule = async () => {
     if (!targetUrl) return;
     setIsScheduling(true);
@@ -164,28 +159,59 @@ function App() {
     }
   };
 
+  // --- FULLY REPAIRED CHAT HANDLER ---
   const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim() || isChatLoading) return;
+    if (e) e.preventDefault();
+    if (!chatInput.trim()) return;
 
-    const userMessage = { role: 'user', content: chatInput };
-    const updatedMessages = [...chatMessages, userMessage];
-    setChatMessages(updatedMessages);
-    setChatInput('');
-    setIsChatLoading(true);
+    const userMessage = chatInput;
+    setChatInput(''); 
+    setIsChatLoading(true); // Lock the submit button
+
+    console.log("[IXA UI] 1. Sending message to AI...");
+
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setChatMessages(prev => [...prev, { role: 'assistant', content: 'Analyzing Threat Context...' }]);
+
+    let currentContext = "No active scan data.";
+    if (finding) {
+        currentContext = JSON.stringify(finding);
+        console.log("[IXA UI] 2. Threat context grabbed successfully.");
+    }
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: updatedMessages })
-      });
-      const data = await response.json();
-      setChatMessages([...updatedMessages, { role: 'assistant', content: data.reply }]);
+        console.log("[IXA UI] 3. Awaiting AI Core response...");
+        
+        const response = await fetch('http://127.0.0.1:5000/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: userMessage,
+                context: currentContext
+            })
+        });
+
+        const data = await response.json();
+        console.log("[IXA UI] 4. AI Core responded successfully.");
+
+        setChatMessages(prev => {
+            const updated = [...prev];
+            updated.pop(); 
+            updated.push({ role: 'assistant', content: data.reply });
+            return updated;
+        });
+
     } catch (error) {
-      setChatMessages([...updatedMessages, { role: 'assistant', content: "Error connecting to AI Core." }]);
+        console.error("[IXA UI ERROR] Chat failed:", error);
+        
+        setChatMessages(prev => {
+            const updated = [...prev];
+            updated.pop();
+            updated.push({ role: 'assistant', content: "SYSTEM ERROR: AI Core connection timed out. Check backend terminal." });
+            return updated;
+        });
     } finally {
-      setIsChatLoading(false);
+        setIsChatLoading(false); // Unlock the submit button
     }
   };
 
@@ -245,7 +271,7 @@ function App() {
         <section className="features-section" ref={featuresRef}>
           <div className="section-header text-center glide-up">
             <h2 className="section-title text-elegant">Next-Generation Threat Intel</h2>
-            <p className="section-desc">Deploy sophisticated attack vectors and leverage Llama 3.1 AI for instant remediation.</p>
+            <p className="section-desc">Deploy sophisticated attack vectors and leverage IXA consultant for instant remediation.</p>
           </div>
 
           <div className="features-grid">
@@ -306,7 +332,6 @@ function App() {
               <h2 className="login-title text-elegant">Operative Login</h2>
               <p className="login-subtitle">Authenticate to access the Engine</p>
               
-              {/* SECURE LOGIN ERROR DISPLAY */}
               {loginError && (
                 <div style={{ marginTop: '15px', padding: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
                   <ShieldAlert size={16} /> {loginError}
@@ -387,7 +412,6 @@ function App() {
             <Database size={16} /> Threat Intel DB
           </button>
 
-          {/* UPDATED INPUT GROUP WITH SCHEDULING UI */}
           <div className="input-group">
             <select className="select-control" value={scanType} onChange={(e) => setScanType(e.target.value)} disabled={isScanning || isScheduling}>
               <option value="reflected">Reflected XSS</option>
@@ -443,7 +467,6 @@ function App() {
             <Activity size={18} /> Threat Analysis Dashboard
           </div>
 
-          {/* ACTIVE SCANNING STATE */}
           {isScanning && (
             <div className="status-overlay clear-fade">
               <div className="spinner-outer">
@@ -454,7 +477,6 @@ function App() {
             </div>
           )}
 
-          {/* IDLE STATE */}
           {!isScanning && !scanReport && (
             <div className="status-overlay" style={{ background: 'transparent' }}>
               <div className="clear-fade">
@@ -464,7 +486,6 @@ function App() {
             </div>
           )}
 
-          {/* POST-SCAN DASHBOARD */}
           {!isScanning && scanReport && (
             <div className="dashboard-container stagger-reveal">
               <div className="dashboard-metrics-grid">
@@ -522,7 +543,6 @@ function App() {
         </div>
       </main>
 
-      {/* FLOATING AI ASSISTANT TRAY */}
       {showChatPopup && finding && (
         <div className="ai-assistant-widget slide-up-robot-tray">
           <div className="ai-assistant-header" onClick={() => setChatExpanded(!chatExpanded)}>
@@ -561,7 +581,7 @@ function App() {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Query AI for remediation tactics..."
-                disabled={isChatLoading}
+                /* REMOVED disabled={isChatLoading} from here so you can type freely */
               />
               <button type="submit" className="chat-send-btn ai-send" disabled={isChatLoading || !chatInput.trim()}>
                 <Play size={16} fill="currentColor" />
@@ -571,7 +591,6 @@ function App() {
         </div>
       )}
 
-      {/* THREAT INTEL DATABASE SIDE PANEL */}
       {showHistory && (
         <>
           <div className="backdrop" onClick={() => setShowHistory(false)}></div>

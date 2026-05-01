@@ -752,12 +752,46 @@
 }
 
 .chat-bubble {
-  max-width: 85%;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    
+    /* FIX 1: Smarter word wrapping that doesn't chop normal words in half */
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important; 
+    word-break: normal !important; 
+}
+
+/* FIX 2: Removes the ugly white background from AI code blocks */
+.chat-bubble pre,
+.chat-bubble code {
+    background-color: transparent !important; 
+    background: none !important;
+    color: inherit !important;
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important;
+    margin: 0;
+    padding: 0;
+}
+
+/* FIX 3: Styles the scrollbar to be dark and sleek (Chrome/Safari/Edge) */
+.chat-messages::-webkit-scrollbar,
+.chat-bubble pre::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track,
+.chat-bubble pre::-webkit-scrollbar-track {
+    background: transparent; /* Removes the thick white track */
+}
+
+.chat-messages::-webkit-scrollbar-thumb,
+.chat-bubble pre::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2); /* Sleek translucent grey */
+    border-radius: 10px;
 }
 
 .chat-bubble.assistant {
