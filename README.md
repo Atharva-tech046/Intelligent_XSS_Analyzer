@@ -2,7 +2,7 @@
 
 <img src="https://github.com/user-attachments/assets/3426840d-47ad-4279-bd54-baf550cba23f" width="250" alt="IXA Logo"/>
 
-# 🛡️ IXA Platform v2.0
+# 🛡️ IXA Platform V2.0
 **Intelligent XSS Analyzer**
 
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
